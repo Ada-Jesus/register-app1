@@ -61,11 +61,30 @@ pipeline {
             }
         }
 
-        stage("Build & Push Docker Image") {
+        stage("Build Docker Image") {
+            steps {
+                script {
+                    docker_image = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
+                }
+            }
+        }
+
+        stage("Trivy Scan") {
+            steps {
+                script {
+                    sh """
+                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+                    aquasec/trivy image ${IMAGE_NAME}:${IMAGE_TAG} \
+                    --no-progress --scanners vuln --exit-code 1 --severity HIGH,CRITICAL
+                    """
+                }
+            }
+        }
+
+        stage("Push Docker Image") {
             steps {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', DOCKER_PASS) {
-                        def docker_image = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
                         docker_image.push("${IMAGE_TAG}")
                         docker_image.push('latest')
                     }
