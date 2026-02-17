@@ -10,7 +10,11 @@ pipeline {
         APP_NAME = "register-app-pipeline1"
         RELEASE = "1.0.0"
         DOCKER_USER = "adajesus"
+<<<<<<< HEAD
         DOCKER_PASS = 'dockerhub' 
+=======
+        DOCKER_PASS = 'dockerhub'
+>>>>>>> d231064 (arranged the jenkinsfile)
         IMAGE_NAME = "${DOCKER_USER}/${APP_NAME}"
         IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
         JENKINS_API_TOKEN = credentials("JENKINS_API_TOKEN")
@@ -89,6 +93,26 @@ pipeline {
                         docker_image.push("${IMAGE_TAG}")
                         docker_image.push('latest')
                     }
+<<<<<<< HEAD
+=======
+                }
+            }
+        }
+
+        stage("Cleanup Docker Images") {
+            steps {
+                script {
+                    sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true"
+                    sh "docker rmi ${IMAGE_NAME}:latest || true"
+                }
+            }
+        }
+
+        stage("Trigger CD Pipeline") {
+            steps {
+                script {
+                    sh "curl -v -k --user clouduser:${JENKINS_API_TOKEN} -X POST -H 'cache-control: no-cache' -H 'content-type: application/x-www-form-urlencoded' --data 'IMAGE_TAG=${IMAGE_TAG}' 'ec2-44-204-176-86.compute-1.amazonaws.com:8080/job/gitops-register-app-cd/buildWithParameters?token=gitops-token'"
+>>>>>>> d231064 (arranged the jenkinsfile)
                 }
             }
         }
